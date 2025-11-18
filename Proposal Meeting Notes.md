@@ -1,0 +1,20 @@
+#EENG/515 
+- Consider both analysis and synthesis using alternative sin/cos 
+	- Probably will lose orthogonality between sin/cos, which will make synthesis more difficult 
+- This is a somewhat unusual project 
+	- But is mostly within scope and intent 
+- Might be connections to matrix condition number to quantify how linearly independent the alternative sin/cos
+- We are encouraged to check in with him for progress updates and getting unstuck 
+	- Doing the progress report in mid-November is highly encouraged
+- Suggested alternative/additional idea:
+	- Laplacian eigenfunctions 
+		- Also sometimes called Laplace-Beltrami Eigenfunctions 
+		- Various operators have functions that aren't altered by the operator (except perhaps by a scaling factor)
+		- For example, the second derivative operator has sin as an eigenfunction 
+		- See if these alternative sin/cos are the eigenfunctions of an operator 
+- Fourier analysis with non-orthogonal bases might require us to do the full normal equations 
+- Seeing if the FFT can be adapted to work with this would be cool 
+	- And convenient to make things run faster 
+- We will need more references that better contextualize how this relates to other work
+- Even if we hit some dead ends, it's likely there would be something here we could make a report out of
+	- If we have issues finding practical applications, connecting to those Laplace-Beltrami eigenfunctions would be a good way to get that connection 

@@ -6,7 +6,10 @@ function r_samps = alt_inv_disc_fourier(coeffs, metric_handle)
     for n = 0:1:N-1
         
         for k = 0:1:N-1
-        %for k = 0:1:N-2
+
+            if coeffs(k+1) == 0
+                continue
+            end
 
             power_term = 2 * pi * (k/N) * n;
 

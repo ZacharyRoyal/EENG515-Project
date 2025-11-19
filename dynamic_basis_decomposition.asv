@@ -1,18 +1,17 @@
-function [coeffs, freqs, norms] = dynamic_basis_decomposition(samples, percent_error_threshold)
+function [coeffs, freqs, norms] = dynamic_basis_decomposition(samples)
 
     % initialize return variables, these will be grown into arrays later
-    coeffs = [];
-    freqs = [];
-    norms = [];
+    coeffs = 0;
+    freqs = 0;
+    norms = 0;
 
     % first define all the metrics we will check over
     %p_sweep = 0.2:0.2:5
     %p_sweep = 0.1:0.1:5;
     %p_sweep = 1:1:5;
-    p_sweep = 0.5:0.5:6;
     %p_sweep = [0.05, 0.1, 0.2, 0.4, 0.8, 1, 1.5, 2, 3, 4, 5];
-    %p_sweep = [1, 1.5, 2, 2.5, 3, 3.5 4, 4.5, 5];
-    %p_sweep = [2]; %for comparing to base DFT
+    p_sweep = [1, 1.5, 2, 2.5, 3, 3.5 4, 4.5, 5];
+    p_sweep = [2]; %for comparing to base DFT
     %p_sweep = [10]
     metric_def_sweep = cell(size(p_sweep));
 
@@ -22,7 +21,7 @@ function [coeffs, freqs, norms] = dynamic_basis_decomposition(samples, percent_e
 
     % break into local variable for convenience
     signal = samples;
-    energy_threshold = percent_error_threshold*norm(signal); %threshold for good enough
+    energy_threshold = 0.05*norm(signal); %threshold for good enough
     % basically X% of original signal energy
 
     term_index = 1;
@@ -58,8 +57,11 @@ function [coeffs, freqs, norms] = dynamic_basis_decomposition(samples, percent_e
 
             % zero-out non-dominant terms
             p_dft(sorted_indexes(1:end-1)) = 0;
-            
-            % old way just trying for best 1-term error
+
+            % once you have the recomposition written, try minimizing the
+            % error of the overall reconstruction using all terms chosen
+            % before this loop and this new candidate rather than just the
+            % 1-term error for each candidate
             reconstructed_signal = real(alt_inv_disc_fourier(p_dft, current_metric));
 
             error = norm(signal - reconstructed_signal);
@@ -70,11 +72,11 @@ function [coeffs, freqs, norms] = dynamic_basis_decomposition(samples, percent_e
                 best_coeff = dominant_term;
                 best_freq = max_index;
 
-                %plot(signal, LineWidth=3)
-                %hold on
-                %plot(reconstructed_signal, LineWidth=2, LineStyle="--")
-                %hold off
-                %pause(0.01)
+                plot(signal)
+                hold on
+                plot(reconstructed_signal)
+                hold off
+                pause(0.01)
 
             end
 
@@ -91,7 +93,7 @@ function [coeffs, freqs, norms] = dynamic_basis_decomposition(samples, percent_e
 
         new_signal = signal - best_reconstructed_signal;
 
-        signal_norms(end+1) = norm(new_signal);
+        signal_norms(end+1) = norm(new_signal)
 
         pause(0.01)
 

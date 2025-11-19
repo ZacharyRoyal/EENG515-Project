@@ -4,7 +4,6 @@ function coeffs = alt_disc_fourier(samples, metric_handle)
     coeffs = zeros(1, N);
 
     for k = 0:1:N-1
-    %for k = 0:1:N-2
         
         for n = 0:1:N-1
 

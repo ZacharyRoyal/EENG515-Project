@@ -1,4 +1,6 @@
-function [coeffs, freqs, norms] = dynamic_basis_decomposition(samples, percent_error_threshold)
+function [coeffs, freqs, norms] = l2_decomposition(samples, percent_error_threshold)
+    % this is just a copy of the standard dynamic basis decomposition, but
+    % with only the l2 sine wave used
 
     % initialize return variables, these will be grown into arrays later
     coeffs = [];
@@ -6,14 +8,7 @@ function [coeffs, freqs, norms] = dynamic_basis_decomposition(samples, percent_e
     norms = [];
 
     % first define all the metrics we will check over
-    %p_sweep = 0.2:0.2:5
-    %p_sweep = 0.1:0.1:5;
-    %p_sweep = 1:1:5;
-    p_sweep = 0.5:0.5:6;
-    %p_sweep = [0.05, 0.1, 0.2, 0.4, 0.8, 1, 1.5, 2, 3, 4, 5];
-    %p_sweep = [1, 1.5, 2, 2.5, 3, 3.5 4, 4.5, 5];
-    %p_sweep = [2]; %for comparing to base DFT
-    %p_sweep = [10]
+    p_sweep = [2]; %for comparing to base DFT
     metric_def_sweep = cell(size(p_sweep));
 
     for i = 1:1:length(p_sweep)

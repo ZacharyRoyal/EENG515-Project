@@ -1,6 +1,47 @@
-samples = randn(1,20);
-%metrics = {make_weighted_p_metric(1,1,2), make_weighted_p_metric(10,1,2), make_weighted_p_metric(1,10,2)}
-metrics = {make_weighted_p_metric(1,1,1), make_weighted_p_metric(1,1,2), make_weighted_p_metric(1,1,3), make_weighted_p_metric(1,1,4)}
+% determines total number of samples
+granularity = 500;
+start_t = 0;
+end_t = 2*pi;
+t = start_t:(end_t-start_t)/granularity:end_t;
+
+% if we want a sin wave of some kind
+f = 1;
+samples = alt_sin(f*t, make_weighted_p_metric(1,1,4));
+
+% uncomment this to make that a square wave
+%samples = round(samples);
+
+% uncomment to get a sawtooth wave
+%sawtooth_cylces = 4;
+%samples = sawtooth(sawtooth_cylces*t)
+
+% uncomment to get a triangle wave
+triangle_cylces = 4;
+samples = sawtooth(triangle_cylces*t, 1/2);
+
+% or if we want some random samples
+%samples = randn(1,granularity);
+%windowSize = max([round(granularity/20),3]); 
+%b = (1/windowSize)*ones(1,windowSize);
+%a = 1;
+%samples = filter(b,a,samples);
+%samples = filter(b,a,samples);
+%samples = filter(b,a,samples);
+
+% increasingly square-ish using weighting of l2
+%metric_defs = {struct('x_w', 1, 'y_w', 1), struct('x_w', 1/1.5, 'y_w', 1.5), struct('x_w', 1/2, 'y_w', 2), struct('x_w', 1/3, 'y_w', 3), struct('x_w', 1/4, 'y_w', 4)}
+
+% increasingly impulse-like using weighting of l2
+%metric_defs = {struct('x_w', 1, 'y_w', 1), struct('x_w', 1.5, 'y_w', 1/1.5), struct('x_w', 2, 'y_w', 1/2), struct('x_w', 3, 'y_w', 1/3), struct('x_w', 4, 'y_w', 1/4)}
+
+% increasingly square-like sine waves using higher p-norm
+%metric_defs = {struct('p',1), struct('p',2), struct('p',3), struct('p',4), struct('p',5), struct('p',6)}
+
+% increasingly impulse-like sine waves using lower p-norm
+%metric_defs = {struct('p',2), struct('p',1.5), struct('p',1), struct('p',0.5), struct('p',0.25)}
+
+%full sweep from 0.25 to 10
+metric_defs = {struct('p',0.25), struct('p',0.5), struct('p',1), struct('p',2), struct('p',3), struct('p',4), struct('p',5), struct('p',6), struct('p',7), struct('p',8), struct('p',9), struct('p',10)};
 
 figure;
 samp_plot = subplot(2,2,1);
@@ -21,35 +62,42 @@ hold(phase_plot, "on")
 
 plot(samp_plot, samples, LineWidth=3, LineStyle="-", DisplayName="Original Samples")
 
-for i = 1:1:(length(metrics))
+for i = 1:1:(length(metric_defs))
 
-    cur_metric = metrics{i};
+    cur_metric = make_weighted_p_metric_struct(metric_defs{i});
 
     p_dft = alt_disc_fourier(samples, cur_metric);
+
+    % 0 out some number of smallest coefficents
+    %top_percent_to_keep = 0.001;
+    %n = length(samples) - round(top_percent_to_keep*length(samples))
+    n = length(samples)-1; %for only most important componenet
+    [~, sorted_indexes] = sort(p_dft);
+    p_dft(sorted_indexes(1:n)) = 0;
 
     recon_samples_p = real(alt_inv_disc_fourier(p_dft, cur_metric));
 
     err = norm(samples - recon_samples_p);
 
-    recon_legend_name = sprintf("Reconstructed with norm: %s , total error: %.3f", func2str(cur_metric), err);
+    recon_legend_name = sprintf("Reconstructed with p-norm: %.2f, total error: %.3f", metric_defs{i}.p, err);
 
-    ratio = recon_samples_p./samples;
+    ratio = samples./recon_samples_p;
 
     plot(samp_plot, recon_samples_p, LineWidth=2, LineStyle="--", DisplayName=recon_legend_name)
     
-    ratio_legend_name = sprintf("Ratio between reconstructed and original samples with norm: %s", func2str(cur_metric));
+    ratio_legend_name = sprintf("Ratio between reconstructed and original samples with p-norm: %.2f", metric_defs{i}.p);
 
     plot(ratio_plot, ratio, LineWidth=2, LineStyle="--", DisplayName=ratio_legend_name);
 
-    mag_legend_name = sprintf("Magnitude of DFT with norm: %s", func2str(cur_metric));
-
-    plot(mag_plot, freqs, abs(p_dft), LineWidth=2, LineStyle="--", DisplayName=mag_legend_name);
-
-    phase_legend_name = sprintf("Phase of DFT with norm: %s", func2str(cur_metric));
+    mag_legend_name = sprintf("Magnitude of DFT with p-norm: %.2f", metric_defs{i}.p);
 
     % surpress teeny tiny coefficients
     surpressed_p_dft = p_dft;
     surpressed_p_dft(abs(p_dft)<1e-6) = 0;
+
+    plot(mag_plot, freqs, abs(surpressed_p_dft), LineWidth=2, LineStyle="--", DisplayName=mag_legend_name);
+
+    phase_legend_name = sprintf("Phase of DFT with p-norm: %.2f", metric_defs{i}.p);
 
     % and then extract the phases 
     phases = unwrap(angle(surpressed_p_dft));

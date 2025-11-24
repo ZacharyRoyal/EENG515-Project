@@ -1,4 +1,4 @@
-function samples = dynamic_basis_recomposition(coeffs, freqs, norms, n_samples)
+function samples = dynamic_basis_recomposition(coeffs, freqs, metrics, n_samples)
 
     % identify highest frequnecy
     max_freq = max(freqs);
@@ -12,12 +12,12 @@ function samples = dynamic_basis_recomposition(coeffs, freqs, norms, n_samples)
     for i = 1:1:length(coeffs)
         current_coeff = coeffs(i);
         current_freq = freqs(i);
-        current_norm = norms(i);
+        current_metric = metrics{i};
 
         current_dft = zeros(1,max_freq);
         current_dft(current_freq) = current_coeff;
 
-        currrent_signal = real(alt_inv_disc_fourier(current_dft, make_weighted_p_metric_struct(struct('p', current_norm))));
+        currrent_signal = real(alt_inv_disc_fourier(current_dft, current_metric));
 
         %plot(samples)
         %hold on

@@ -1,13 +1,13 @@
 % define signal here
-time_series = 0:0.1:2*pi;
-frequency = 4;
+time_series = 0:0.05:2*pi;
+frequency = 10;
 
 % random sample with varying smoothness
-random_smoothing = 15;
+random_smoothing = 2;
 samples = smoothed_random_samples(length(time_series), random_smoothing);
 
 % triangle wave
-%samples = tri_samples(time_series, frequency);
+samples = tri_samples(time_series, frequency);
 
 % sawtooth wave
 %samples = saw_samples(time_series, frequency);
@@ -16,40 +16,77 @@ samples = smoothed_random_samples(length(time_series), random_smoothing);
 %samples = square_samples(time_series, frequency);
 
 % sin wave of given metric
-%samples = sin_samples(time_series, frequency, make_weighted_p_metric(5,1,3));
+%samples = sin_samples(time_series, frequency, make_weighted_p_metric(1,1,0.5));
 
-percent_error_threshold = 0.01;
+percent_error_threshold = 0.10;
 
 figure;
 recomp_compare_plot = subplot(1,1,1);
-%norm_histogram_plot = subplot(2,1,2);
 plot(recomp_compare_plot, samples, LineWidth=4, Color='g')
 hold(recomp_compare_plot, 'on')
-%hold(norm_histogram_plot, 'on')
 
 % first we evaluate the standard l2 decomposition
-[coeffs, freqs, norms] = l2_decomposition(samples, percent_error_threshold);
-l2_terms_to_approx = length(coeffs)
-recon_samples_l2 = dynamic_basis_recomposition(coeffs, freqs, norms, length(samples));
-percent_error = norm(samples - recon_samples_l2)/norm(samples)
+l2_coeffs_base = fft(samples);
+percent_error = 10e10;
+samples_to_zero = length(l2_coeffs_base);
+% just creating this variable out of the loop so it can be used below it
+% later, it's value will be overwritten in the loop
+recon_samples_l2 = real(ifft(l2_coeffs_base));
+while (percent_error > percent_error_threshold)
 
+    % increment our allowed samples
+    samples_to_zero = max(0, samples_to_zero - 1);
+
+    % sort coeffs by magnitude
+    [~, sorted_indexes] = sort(abs(l2_coeffs_base));
+
+    l2_coeffs_cut = l2_coeffs_base;
+
+    % 0 out some number of the smallest ones
+    l2_coeffs_cut((sorted_indexes(1:samples_to_zero))) = 0;
+
+    % reconstruct the signal with the remaining ones
+    recon_samples_l2 = real(ifft(l2_coeffs_cut));
+
+    % and see how close we are
+    percent_error = norm(samples - recon_samples_l2)/norm(samples);
+
+end
+
+l2_terms_to_approx = length(l2_coeffs_base) - samples_to_zero
+percent_error = norm(samples - recon_samples_l2)/norm(samples)
 plot(recomp_compare_plot, recon_samples_l2, LineWidth=2, LineStyle="--")
 
-% then the first iteraiton of the dynamic basis decomposition
-%[coeffs, freqs, norms] = dynamic_basis_decomposition(samples, percent_error_threshold);
-%dyn_terms_to_approx = length(coeffs)
-%recon_samples_dyn = dynamic_basis_recomposition(coeffs, freqs, norms, length(samples));
-%percent_error = norm(samples - recon_samples_dyn)/norm(samples)
+% define all the metrics we will check over
+%p_sweep = 0.2:0.2:5
+%p_sweep = 0.1:0.1:5;
+%p_sweep = [0.8, 1:0.5:6];
+p_sweep = 0.5:0.5:6; % current champion for convergence robustness and term count
+%p_sweep = [0.05, 0.1, 0.2, 0.4, 0.8, 1, 1.5, 2, 3, 4, 5];
+%p_sweep = [0.1, 0.5, 1, 1.5, 2, 2.5, 3, 3.5 4, 4.5, 5, 10];
+%p_sweep = [2]; %for comparing to base DFT
+%p_sweep = [10]
+%p_sweep = 0.5:0.25:5;
+%p_sweep = [1,2,3];
 
-%plot(recomp_compare_plot, recon_samples_dyn, LineWidth=2, LineStyle="--")
-%plot(norm_histogram_plot, sort(norms));
+metric_def_sweep = cell(size(p_sweep));
+
+for i = 1:1:length(p_sweep)
+    metric_def_sweep{i} = struct('p', p_sweep(i));
+end
+
+% then the first iteraiton of the dynamic basis decomposition
+[coeffs, freqs, metrics] = dynamic_basis_decomposition(samples, metric_def_sweep, percent_error_threshold);
+dyn_terms_to_approx = length(coeffs)
+recon_samples_dyn = dynamic_basis_recomposition(coeffs, freqs, metrics, length(samples));
+percent_error = norm(samples - recon_samples_dyn)/norm(samples)
+
+plot(recomp_compare_plot, recon_samples_dyn, LineWidth=2, LineStyle="--")
 
 % and finally the enhanced dynamic basis decomposition
-[coeffs, freqs, norms] = enhanced_dynamic_basis_decomposition(samples, percent_error_threshold);
+[coeffs, freqs, metrics] = enhanced_dynamic_basis_decomposition(samples, metric_def_sweep, percent_error_threshold);
 enhanced_dyn_terms_to_approx = length(coeffs)
-recon_samples_enhanced_dyn = dynamic_basis_recomposition(coeffs, freqs, norms, length(samples));
+recon_samples_enhanced_dyn = dynamic_basis_recomposition(coeffs, freqs, metrics, length(samples));
 percent_error = norm(samples - recon_samples_enhanced_dyn)/norm(samples)
 
 plot(recomp_compare_plot, recon_samples_enhanced_dyn, LineWidth=2, LineStyle="--")
-
-%plot(norm_histogram_plot, sort(norms));

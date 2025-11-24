@@ -1,24 +1,9 @@
-function [coeffs, freqs, norms] = dynamic_basis_decomposition(samples, percent_error_threshold)
+function [coeffs, freqs, metrics] = dynamic_basis_decomposition(samples, metric_def_list, percent_error_threshold, max_allowed_coeffs)
 
     % initialize return variables, these will be grown into arrays later
     coeffs = [];
     freqs = [];
-    norms = [];
-
-    % first define all the metrics we will check over
-    %p_sweep = 0.2:0.2:5
-    %p_sweep = 0.1:0.1:5;
-    %p_sweep = 1:1:5;
-    p_sweep = 0.5:0.5:6;
-    %p_sweep = [0.05, 0.1, 0.2, 0.4, 0.8, 1, 1.5, 2, 3, 4, 5];
-    %p_sweep = [1, 1.5, 2, 2.5, 3, 3.5 4, 4.5, 5];
-    %p_sweep = [2]; %for comparing to base DFT
-    %p_sweep = [10]
-    metric_def_sweep = cell(size(p_sweep));
-
-    for i = 1:1:length(p_sweep)
-        metric_def_sweep{i} = struct('p', p_sweep(i));
-    end
+    metrics = {};
 
     % break into local variable for convenience
     signal = samples;
@@ -30,7 +15,15 @@ function [coeffs, freqs, norms] = dynamic_basis_decomposition(samples, percent_e
     % debug variable to allow plotting of signal norm over time 
     signal_norms = [norm(signal)];
 
-    while (norm(signal) > energy_threshold)
+    if ~exist('max_allowed_coeffs', 'var')
+        max_allowed_coeffs = length(samples);
+    end
+
+    coeff_count = 0;
+
+    figure;
+
+    while (norm(signal) > energy_threshold && coeff_count <= max_allowed_coeffs)
         
         % now we loop over each metric, see which one has the best 1-term
         % approximation, and then subtract that approximation from the
@@ -38,13 +31,13 @@ function [coeffs, freqs, norms] = dynamic_basis_decomposition(samples, percent_e
         % threshold
 
         best_error = 10^10;
-        best_p_index = 1;
+        best_metric = metric_def_list{1};
         best_coeff = 0;
         best_freq = 0;
 
-        for i = 1:1:length(metric_def_sweep)
+        for i = 1:1:length(metric_def_list)
             
-            current_metric = make_weighted_p_metric_struct(metric_def_sweep{i});
+            current_metric = metric_def_list{i};
 
             % decompose the signal
             p_dft = alt_disc_fourier(signal, current_metric);
@@ -66,15 +59,15 @@ function [coeffs, freqs, norms] = dynamic_basis_decomposition(samples, percent_e
 
             if error < best_error
                 best_error = error;
-                best_p_index = i;
+                best_metric = current_metric;
                 best_coeff = dominant_term;
                 best_freq = max_index;
 
-                %plot(signal, LineWidth=3)
-                %hold on
-                %plot(reconstructed_signal, LineWidth=2, LineStyle="--")
-                %hold off
-                %pause(0.01)
+                plot(signal, LineWidth=3)
+                hold on
+                plot(reconstructed_signal, LineWidth=2, LineStyle="--")
+                hold off
+                pause(0.01)
 
             end
 
@@ -82,12 +75,12 @@ function [coeffs, freqs, norms] = dynamic_basis_decomposition(samples, percent_e
         
         coeffs(term_index) = best_coeff;
         freqs(term_index) = best_freq;
-        norms(term_index) = p_sweep(best_p_index);
+        metrics{term_index} = best_metric;
 
         best_dft = zeros(1,length(signal));
         best_dft(best_freq) = best_coeff;
 
-        best_reconstructed_signal = real(alt_inv_disc_fourier(best_dft, make_weighted_p_metric_struct(metric_def_sweep{best_p_index})));
+        best_reconstructed_signal = real(alt_inv_disc_fourier(best_dft, best_metric));
 
         new_signal = signal - best_reconstructed_signal;
 
@@ -97,6 +90,7 @@ function [coeffs, freqs, norms] = dynamic_basis_decomposition(samples, percent_e
 
         term_index = term_index + 1;
         signal = new_signal;
+        coeff_count = coeff_count + 1;
 
     end
 

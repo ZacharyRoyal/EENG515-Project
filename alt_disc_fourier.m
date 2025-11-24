@@ -1,12 +1,14 @@
-function coeffs = alt_disc_fourier(samples, metric_handle)
+function coeffs = alt_disc_fourier(samples, metric_def)
 
     N = size(samples, 2);
     coeffs = zeros(1, N);
 
+    metric_handle = make_weighted_p_metric_struct(metric_def);
+
     for k = 0:1:N-1
         
         for n = 0:1:N-1
-
+        
             power_term = -2 * pi * (k/N) * n;
 
             alpha = alt_alpha(power_term, metric_handle);

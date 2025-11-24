@@ -1,7 +1,9 @@
-function r_samps = alt_inv_disc_fourier(coeffs, metric_handle)
+function r_samps = alt_inv_disc_fourier(coeffs, metric_def)
 
     N = size(coeffs, 2);
     r_samps = zeros(1, N);
+
+    metric_handle = make_weighted_p_metric_struct(metric_def);
 
     for n = 0:1:N-1
         

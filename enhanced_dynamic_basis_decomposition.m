@@ -1,27 +1,9 @@
-function [coeffs, freqs, norms] = enhanced_dynamic_basis_decomposition(samples, percent_error_threshold)
+function [coeffs, freqs, metrics] = enhanced_dynamic_basis_decomposition(samples, metric_def_list, percent_error_threshold, max_allowed_coeffs)
 
     % initialize return variables, these will be grown into arrays later
     coeffs = [];
     freqs = [];
-    norms = [];
-
-    % define all the metrics we will check over
-    %p_sweep = 0.2:0.2:5
-    %p_sweep = 0.1:0.1:5;
-    %p_sweep = [0.8, 1:0.5:6];
-    %p_sweep = 0.5:0.5:6; % current champion for convergence robustness and term count
-    %p_sweep = [0.05, 0.1, 0.2, 0.4, 0.8, 1, 1.5, 2, 3, 4, 5];
-    %p_sweep = [0.1, 0.5, 1, 1.5, 2, 2.5, 3, 3.5 4, 4.5, 5, 10];
-    p_sweep = [2]; %for comparing to base DFT
-    %p_sweep = [10]
-    %p_sweep = 0.5:0.25:5;
-    %p_sweep = [1,2,3];
-
-    metric_def_sweep = cell(size(p_sweep));
-
-    for i = 1:1:length(p_sweep)
-        metric_def_sweep{i} = struct('p', p_sweep(i));
-    end
+    metrics = {};
 
     energy_threshold = percent_error_threshold*norm(samples); %threshold for good enough
     % basically X% of original signal energy
@@ -37,8 +19,14 @@ function [coeffs, freqs, norms] = enhanced_dynamic_basis_decomposition(samples, 
     figure;
     signal_plot = subplot(2,1,1);
     error_plot =subplot(2,1,2);
+    
+    if ~exist('max_allowed_coeffs', 'var')
+        max_allowed_coeffs = length(samples);
+    end
 
-    while (norm(error_signal) > energy_threshold)
+    coeff_count = 0;
+
+    while (norm(error_signal) > energy_threshold && coeff_count <= max_allowed_coeffs)
         
         % now we loop over each metric, see which one has the best 1-term
         % approximation, and then subtract that approximation from the
@@ -46,13 +34,13 @@ function [coeffs, freqs, norms] = enhanced_dynamic_basis_decomposition(samples, 
         % threshold
 
         best_error = 10^10;
-        best_p_index = 1;
+        best_metric = metric_def_list{1};
         best_coeff = 0;
         best_freq = 0;
 
-        for i = 1:1:length(metric_def_sweep)
+        for i = 1:1:length(metric_def_list)
             
-            current_metric = make_weighted_p_metric_struct(metric_def_sweep{i});
+            current_metric = metric_def_list{i};
 
             % decompose the signal
             p_dft = alt_disc_fourier(samples, current_metric);
@@ -63,14 +51,15 @@ function [coeffs, freqs, norms] = enhanced_dynamic_basis_decomposition(samples, 
 
                 candidate_coeffs = [coeffs, current_term];
                 candidate_freqs = [freqs, current_freq];
-                candidate_norms = [norms, p_sweep(i)];
+                candidate_metrics = metrics;
+                candidate_metrics{end+1} = current_metric;
 
-                candidate_signal = dynamic_basis_recomposition(candidate_coeffs, candidate_freqs, candidate_norms, length(samples));
+                candidate_signal = dynamic_basis_recomposition(candidate_coeffs, candidate_freqs, candidate_metrics, length(samples));
                 candidate_error = norm(samples - candidate_signal);
 
                 if candidate_error < best_error
                     best_error = candidate_error;
-                    best_p_index = i;
+                    best_metric = current_metric;
                     best_coeff = current_term;
                     best_freq = current_freq;
     
@@ -88,9 +77,9 @@ function [coeffs, freqs, norms] = enhanced_dynamic_basis_decomposition(samples, 
         
         coeffs(term_index) = best_coeff;
         freqs(term_index) = best_freq;
-        norms(term_index) = p_sweep(best_p_index);
+        metrics{term_index} = best_metric;
 
-        current_signal = dynamic_basis_recomposition(coeffs, freqs, norms, length(samples));
+        current_signal = dynamic_basis_recomposition(coeffs, freqs, metrics, length(samples));
 
         error_signal = samples - current_signal;
 
@@ -105,6 +94,7 @@ function [coeffs, freqs, norms] = enhanced_dynamic_basis_decomposition(samples, 
         pause(0.01)
 
         term_index = term_index + 1;
+        coeff_count = coeff_count + 1;
 
     end
 

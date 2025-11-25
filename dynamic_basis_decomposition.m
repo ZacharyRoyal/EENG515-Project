@@ -22,6 +22,8 @@ function [coeffs, freqs, metrics] = dynamic_basis_decomposition(samples, metric_
     coeff_count = 0;
 
     figure;
+    signal_plot = subplot(2,1,1);
+    error_plot =subplot(2,1,2);
 
     while (norm(signal) > energy_threshold && coeff_count <= max_allowed_coeffs)
         
@@ -63,10 +65,10 @@ function [coeffs, freqs, metrics] = dynamic_basis_decomposition(samples, metric_
                 best_coeff = dominant_term;
                 best_freq = max_index;
 
-                plot(signal, LineWidth=3)
-                hold on
-                plot(reconstructed_signal, LineWidth=2, LineStyle="--")
-                hold off
+                plot(signal_plot, signal, LineWidth=3)
+                hold(signal_plot, 'on')
+                plot(signal_plot, reconstructed_signal, LineWidth=2, LineStyle="--")
+                hold(signal_plot, 'off')
                 pause(0.01)
 
             end
@@ -86,6 +88,11 @@ function [coeffs, freqs, metrics] = dynamic_basis_decomposition(samples, metric_
 
         signal_norms(end+1) = norm(new_signal);
 
+        threshold_line = ones(size(signal_norms)).*(energy_threshold);
+        plot(error_plot, signal_norms, LineWidth=1.5, LineStyle='--');
+        hold(error_plot, 'on')
+        plot(error_plot, threshold_line, LineWidth=1)
+        hold(error_plot, 'off')
         pause(0.01)
 
         term_index = term_index + 1;

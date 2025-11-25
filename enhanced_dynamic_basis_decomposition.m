@@ -14,11 +14,11 @@ function [coeffs, freqs, metrics] = enhanced_dynamic_basis_decomposition(samples
     error_signal = samples - current_signal;
 
     % debug variable to allow plotting of error norm over time 
-    error_norms = [norm(error_signal)];
+    error_norms = [];
 
     figure;
     signal_plot = subplot(2,1,1);
-    error_plot =subplot(2,1,2);
+    error_plot = subplot(2,1,2);
     
     if ~exist('max_allowed_coeffs', 'var')
         max_allowed_coeffs = length(samples);
@@ -26,7 +26,7 @@ function [coeffs, freqs, metrics] = enhanced_dynamic_basis_decomposition(samples
 
     coeff_count = 0;
 
-    while (norm(error_signal) > energy_threshold && coeff_count <= max_allowed_coeffs)
+    while (norm(error_signal) > energy_threshold && coeff_count < max_allowed_coeffs)
         
         % now we loop over each metric, see which one has the best 1-term
         % approximation, and then subtract that approximation from the

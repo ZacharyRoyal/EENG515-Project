@@ -1,19 +1,23 @@
 % define signal here
-time_series = 0:0.05:2*pi;
-frequency = 10;
+step_size = 0.1;
+time_series = 0:step_size:2*pi;
+frequency = 0.5;
 
 % random sample with varying smoothness
-random_smoothing = 2;
+random_smoothing = 8;
 samples = smoothed_random_samples(length(time_series), random_smoothing);
 
 % triangle wave
-samples = tri_samples(time_series, frequency);
+%samples = tri_samples(time_series, frequency);
 
 % sawtooth wave
 %samples = saw_samples(time_series, frequency);
 
 % square wave
 %samples = square_samples(time_series, frequency);
+
+% funky shark-fin looking shapes
+%samples = shark_samples(time_series, frequency);
 
 % sin wave of given metric
 %samples = sin_samples(time_series, frequency, make_weighted_p_metric(1,1,0.5));
@@ -56,12 +60,13 @@ end
 l2_terms_to_approx = length(l2_coeffs_base) - samples_to_zero
 percent_error = norm(samples - recon_samples_l2)/norm(samples)
 plot(recomp_compare_plot, recon_samples_l2, LineWidth=2, LineStyle="--")
+hold(recomp_compare_plot, 'on')
 
 % define all the metrics we will check over
 %p_sweep = 0.2:0.2:5
 %p_sweep = 0.1:0.1:5;
 %p_sweep = [0.8, 1:0.5:6];
-p_sweep = 0.5:0.5:6; % current champion for convergence robustness and term count
+%p_sweep = 0.5:0.5:6; % current champion for convergence robustness and term count
 %p_sweep = [0.05, 0.1, 0.2, 0.4, 0.8, 1, 1.5, 2, 3, 4, 5];
 %p_sweep = [0.1, 0.5, 1, 1.5, 2, 2.5, 3, 3.5 4, 4.5, 5, 10];
 %p_sweep = [2]; %for comparing to base DFT
@@ -69,10 +74,20 @@ p_sweep = 0.5:0.5:6; % current champion for convergence robustness and term coun
 %p_sweep = 0.5:0.25:5;
 %p_sweep = [1,2,3];
 
-metric_def_sweep = cell(size(p_sweep));
+%metric_def_sweep = cell(size(p_sweep));
 
-for i = 1:1:length(p_sweep)
-    metric_def_sweep{i} = struct('p', p_sweep(i));
+%for i = 1:1:length(p_sweep)
+%    metric_def_sweep{i} = struct('p', p_sweep(i));
+%end
+
+%w_sweep = 0.5:0.5:5; current champion 
+%w_sweep = 0.1:0.1:10; % danger zone
+%w_sweep = [0.1, 0.5, 1, 2, 4, 8];
+%w_sweep = [0.1, 1, 10];
+w_sweep = [1];
+metric_def_sweep = cell(size(w_sweep));
+for i = 1:1:length(w_sweep)
+    metric_def_sweep{i} = struct('x_w', w_sweep(i));
 end
 
 % then the first iteraiton of the dynamic basis decomposition
@@ -82,6 +97,7 @@ recon_samples_dyn = dynamic_basis_recomposition(coeffs, freqs, metrics, length(s
 percent_error = norm(samples - recon_samples_dyn)/norm(samples)
 
 plot(recomp_compare_plot, recon_samples_dyn, LineWidth=2, LineStyle="--")
+hold(recomp_compare_plot, 'on')
 
 % and finally the enhanced dynamic basis decomposition
 [coeffs, freqs, metrics] = enhanced_dynamic_basis_decomposition(samples, metric_def_sweep, percent_error_threshold);

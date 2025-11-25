@@ -1,4 +1,4 @@
-function plot_dynamic_decomposition(coeffs, freqs, metrics, ax)
+function plot_dynamic_decomposition(coeffs, freqs, metrics, ax, n_samples)
 
     if ~exist('ax', 'var')
         figure;
@@ -9,9 +9,12 @@ function plot_dynamic_decomposition(coeffs, freqs, metrics, ax)
         hold(decomp_plot, 'on')
     end
     
-    % oversample a bit so we can see the pretty shapes
-    n_samples = (round(max(freqs)/100) + 3) * 100;
-    
+    if ~exist('n_samples', 'var')
+        % oversample a bit so we can see the pretty shapes
+        %n_samples = (round(max(freqs)/100) + 3) * 100;
+        n_samples = max(freqs);
+    end
+        
     for i = 1:1:length(coeffs)
     
         single_signal = dynamic_basis_recomposition(coeffs(i), freqs(i), {metrics{i}}, n_samples);
@@ -20,6 +23,10 @@ function plot_dynamic_decomposition(coeffs, freqs, metrics, ax)
 
 
     end
+
+    full_signal = dynamic_basis_recomposition(coeffs, freqs, metrics, n_samples);
+
+    plot(decomp_plot, full_signal);
 
     hold(decomp_plot, 'off')
     

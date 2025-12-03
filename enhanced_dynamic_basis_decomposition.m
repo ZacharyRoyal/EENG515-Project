@@ -26,6 +26,15 @@ function [coeffs, freqs, metrics] = enhanced_dynamic_basis_decomposition(samples
 
     coeff_count = 0;
 
+    p_dft_arr = cell(length(metric_def_list), length(samples));
+    for i = 1:1:length(metric_def_list)
+            
+        current_metric = metric_def_list{i};
+
+        % decompose the signal
+        p_dft_arr{i} = alt_disc_fourier(samples, current_metric);
+    end
+
     while (norm(error_signal) > energy_threshold && coeff_count < max_allowed_coeffs)
         
         % now we loop over each metric, see which one has the best 1-term
@@ -43,7 +52,7 @@ function [coeffs, freqs, metrics] = enhanced_dynamic_basis_decomposition(samples
             current_metric = metric_def_list{i};
 
             % decompose the signal
-            p_dft = alt_disc_fourier(samples, current_metric);
+            p_dft = p_dft_arr{i};
 
             for j = 1:1:length(p_dft)
                 current_term = p_dft(j);

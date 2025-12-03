@@ -1,14 +1,14 @@
 % define signal here
 step_size = 0.1;
 time_series = 0:step_size:2*pi;
-frequency = 2;
+frequency = 8;
 
 % random sample with varying smoothness
 %random_smoothing = 1;
 %samples = smoothed_random_samples(length(time_series), random_smoothing);
 
 % triangle wave
-%samples = tri_samples(time_series, frequency);
+samples = tri_samples(time_series, frequency);
 
 % sawtooth wave
 %samples = saw_samples(time_series, frequency);
@@ -20,13 +20,15 @@ frequency = 2;
 %samples = block_samples(time_series, frequency);
 
 % funky shark-fin looking shapes
-samples = shark_samples(time_series, frequency);
+%samples = shark_samples(time_series, frequency);
 
 % sin wave of given metric
-%samples = sin_samples(time_series, frequency, make_weighted_p_metric(1,1,2));
+%samples = sin_samples(time_series, frequency, make_weighted_p_metric(1,1,1));
+%samples = samples + sin_samples(time_series, frequency*2, make_weighted_p_metric(1,1,2));
+%samples = samples + sin_samples(time_series, frequency*3, make_weighted_p_metric(1,1,3));
 
 % add some random noise if you choose
-%samples = add_random_noise(samples, 0.1, 0);
+samples = add_random_noise(samples, 0.1, 5);
 
 percent_error_threshold = 0.1;
 

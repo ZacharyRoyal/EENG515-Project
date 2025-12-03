@@ -12,6 +12,7 @@ function plot_dynamic_decomposition(coeffs, freqs, metrics, ax, n_samples)
     if ~exist('n_samples', 'var')
         % oversample a bit so we can see the pretty shapes
         %n_samples = (round(max(freqs)/100) + 3) * 100;
+
         n_samples = max(freqs);
     end
         

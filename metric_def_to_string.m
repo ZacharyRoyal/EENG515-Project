@@ -1,10 +1,10 @@
-function metric_handle = make_weighted_p_metric_struct(metric_def)
+function str = metric_def_to_string(metric_def)
 
     % default to unweighted l2
     x_w = 1;
     y_w = 1;
     p = 2;
-    
+
     if isfield(metric_def, 'x_w')
         x_w = metric_def.x_w;
     end
@@ -22,5 +22,6 @@ function metric_handle = make_weighted_p_metric_struct(metric_def)
         W = metric_def.W;
     end
 
-    metric_handle = make_weighted_matrix_p_metric(W, p);
+    str = sprintf("p: %.2f, W: [%.2f, %.2f; %.2f, %.2f]", p, W(1,1), W(1,2), W(2,1), W(2,2));
+
 end

@@ -1,14 +1,14 @@
 % define signal here
 step_size = 0.1;
 time_series = 0:step_size:2*pi;
-frequency = 8;
+frequency = 4;
 
 % random sample with varying smoothness
-%random_smoothing = 1;
+%random_smoothing = 2;
 %samples = smoothed_random_samples(length(time_series), random_smoothing);
 
 % triangle wave
-samples = tri_samples(time_series, frequency);
+%samples = tri_samples(time_series, frequency);
 
 % sawtooth wave
 %samples = saw_samples(time_series, frequency);
@@ -22,13 +22,17 @@ samples = tri_samples(time_series, frequency);
 % funky shark-fin looking shapes
 %samples = shark_samples(time_series, frequency);
 
+% double the sharks
+samples = shark_samples(time_series, frequency)+1;
+samples = samples + (flip(samples));
+
 % sin wave of given metric
-%samples = sin_samples(time_series, frequency, make_weighted_p_metric(1,1,1));
-%samples = samples + sin_samples(time_series, frequency*2, make_weighted_p_metric(1,1,2));
-%samples = samples + sin_samples(time_series, frequency*3, make_weighted_p_metric(1,1,3));
+%samples = sin_samples(time_series, frequency, make_weighted_p_metric(1,1,0.5));
+%samples = samples + sin_samples(time_series, frequency*3, make_weighted_p_metric(100,1,3));
+%amples = samples + sin_samples(time_series, frequency*2, make_weighted_p_metric(1,1,2)) .* 0.2;
 
 % add some random noise if you choose
-samples = add_random_noise(samples, 0.1, 5);
+%samples = add_random_noise(samples, 0.1, 5);
 
 percent_error_threshold = 0.1;
 
@@ -79,41 +83,20 @@ for i = 1:1:length(l2_coeffs_cut)
 end
 plot_dynamic_decomposition(l2_coeffs_cut, 1:1:length(l2_coeffs_cut), l2_list, decomp_compare_plot_1, length(samples));
 
-% define all the metrics we will check over
-%p_sweep = 0.2:0.2:5
-%p_sweep = 0.1:0.1:5;
-%p_sweep = [0.8, 1:0.5:6];
-%p_sweep = 0.5:0.5:6; % current champion for convergence robustness and term count
-%p_sweep = [0.05, 0.1, 0.2, 0.4, 0.8, 1, 1.5, 2, 3, 4, 5];
-%p_sweep = [0.1, 0.5, 1, 1.5, 2, 2.5, 3, 3.5 4, 4.5, 5, 10];
-%p_sweep = [2]; %for comparing to base DFT
-%p_sweep = [10];
-%p_sweep = 0.5:0.25:5;
-%p_sweep = [1,2,3];
-%p_sweep = 1:0.5:6;
+%w_sweep = [0.01, 1, 100]; % new champion?
 
-%metric_def_sweep = cell(size(p_sweep));
-
-%for i = 1:1:length(p_sweep)
-%    metric_def_sweep{i} = struct('p', p_sweep(i));
-%end
-
-%w_sweep = 0.5:0.5:5; %current champion 
-%w_sweep = 0.1:0.1:10; % danger zone
-%w_sweep = [0.1, 0.5, 1, 2, 4, 8];
-w_sweep = [0.01, 1, 100]; % new champion?
-%w_sweep = [100];
-%w_sweep = [1]; % also for comparing to base DFT
-metric_def_sweep = cell(size(w_sweep));
-for i = 1:1:length(w_sweep)
-    metric_def_sweep{i} = struct('x_w', w_sweep(i));
-end
+metric_def_sweep = {struct('p', 1), struct('p', 2), struct('p', 3), struct('W', [0.01 0; 0 1]), struct('W', [100 0; 0 1]), struct('W', [1 0.5; 0 1]), struct('W', [1 -0.5; 0 1])};
 
 % then the first iteraiton of the dynamic basis decomposition
 [coeffs, freqs, metrics] = dynamic_basis_decomposition(samples, metric_def_sweep, percent_error_threshold);
 dyn_terms_to_approx = length(coeffs)
 recon_samples_dyn = dynamic_basis_recomposition(coeffs, freqs, metrics, length(samples));
 percent_error = norm(samples - recon_samples_dyn)/norm(samples)
+
+disp("Components used:")
+for i = 1:1:length(metrics)
+    fprintf("\t%.3f + %.3fi, %d, %s \n", real(coeffs(i)), imag(coeffs(i)), freqs(i), metric_def_to_string(metrics{i}));
+end
 
 plot(recomp_compare_plot, recon_samples_dyn, LineWidth=2, LineStyle="--")
 plot_dynamic_decomposition(coeffs, freqs, metrics, decomp_compare_plot_2, length(samples));
@@ -123,6 +106,11 @@ plot_dynamic_decomposition(coeffs, freqs, metrics, decomp_compare_plot_2, length
 enhanced_dyn_terms_to_approx = length(coeffs)
 recon_samples_enhanced_dyn = dynamic_basis_recomposition(coeffs, freqs, metrics, length(samples));
 percent_error = norm(samples - recon_samples_enhanced_dyn)/norm(samples)
+
+disp("Components used:")
+for i = 1:1:length(metrics)
+    fprintf("\t%.3f + %.3fi, %d, %s \n", real(coeffs(i)), imag(coeffs(i)), freqs(i), metric_def_to_string(metrics{i}));
+end
 
 plot(recomp_compare_plot, recon_samples_enhanced_dyn, LineWidth=2, LineStyle="--")
 plot_dynamic_decomposition(coeffs, freqs, metrics, decomp_compare_plot_3, length(samples));

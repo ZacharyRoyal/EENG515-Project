@@ -1,4 +1,4 @@
 function recon = alt_inv_disc_fourier(coeffs, metric_def)
     Phi = build_alt_basis(N, freqs, metric_def);
-    recon = synthesize(Phi, coeffs);
+    recon = Phi * coeffs;
 end

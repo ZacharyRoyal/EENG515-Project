@@ -1,5 +1,7 @@
 function [active, cA] = omp_qr(D, x, percent_error_threshold, max_allowed_coeffs)
-    if ~exist('max_allowed_coeffs', 'var'), max_allowed_coeffs = size(D,2); end
+    if ~exist('max_allowed_coeffs', 'var')
+        max_allowed_coeffs = size(D,2); 
+    end
     x = x(:);
     r = x;
     active = [];

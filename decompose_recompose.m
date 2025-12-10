@@ -14,7 +14,7 @@ frequency = 4;
 %samples = saw_samples(time_series, frequency);
 
 % square wave with intermediary flat zones at 0
-%samples = square_samples(time_series, frequency);
+samples = square_samples(time_series, frequency);
 
 % square wave which directly transitions from one plateu to the next
 %samples = block_samples(time_series, frequency);
@@ -23,8 +23,8 @@ frequency = 4;
 %samples = shark_samples(time_series, frequency);
 
 % double the sharks
-samples = shark_samples(time_series, frequency)+1;
-samples = samples + (flip(samples));
+% samples = shark_samples(time_series, frequency)+1;
+% samples = samples + (flip(samples));
 
 % sin wave of given metric
 %samples = sin_samples(time_series, frequency, make_weighted_p_metric(1,1,0.5));

@@ -10,4 +10,5 @@ function [D, dict_info] = build_alt_dictionary(N, freqs, metric_def_list)
         end
     end
     D = cell2mat(cols); % N x K
+    fprintf("Size of Dictionary, K: %d\n", size(D, 2));
 end

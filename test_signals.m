@@ -45,7 +45,6 @@ function test_signals()
         omp_terms = numel(active_idx_omp);
         omp_error = norm(x - recon_omp) / norm(x);
         recon_omp = recon_omp(:);
-
            
         % --- Run OLS ---
         [active_idx_ols, coeffs_ols, ~] = ols_selection(D, dict_info, x, percent_error_threshold, N);
@@ -117,34 +116,34 @@ function test_signals()
         % plot_selected_atoms(t, dftmtx(N), fft_info, fft_active, fft_coeffs_used, 'FFT');
 
         % --- Save summary ---
-        summary{end+1} = struct('signal', name, ...
-                                'fft_terms', l2_terms, 'fft_error', l2_error, ...
-                                'omp_terms', omp_terms, 'omp_error', omp_error, ...
-                                'ols_terms', ols_terms, 'ols_error', ols_error);
+        % summary{end+1} = struct('signal', name, ...
+        %                         'fft_terms', l2_terms, 'fft_error', l2_error, ...
+        %                         'omp_terms', omp_terms, 'omp_error', omp_error, ...
+        %                         'ols_terms', ols_terms, 'ols_error', ols_error);
     end
 
     % ----- Print summary table -----
-    fprintf("\nSummary across signals:\n");
-    fprintf("%-10s | %-10s | %-10s | %-10s | %-10s | %-10s | %-10s\n", ...
-        'Signal', 'FFT terms', 'FFT error', 'OMP terms', 'OMP error', 'OLS terms', 'OLS error');
-    fprintf("-------------------------------------------------------------------------\n");
-    for i = 1:numel(summary)
-        s = summary{i};
-        fprintf("%-10s | %-10d | %-10.4f | %-10d | %-10.4f | %-10d | %-10.4f\n", ...
-            s.signal, s.fft_terms, s.fft_error, s.omp_terms, s.omp_error, s.ols_terms, s.ols_error);
-    end
+    % fprintf("\nSummary across signals:\n");
+    % fprintf("%-10s | %-10s | %-10s | %-10s | %-10s | %-10s | %-10s\n", ...
+    %     'Signal', 'FFT terms', 'FFT error', 'OMP terms', 'OMP error', 'OLS terms', 'OLS error');
+    % fprintf("-------------------------------------------------------------------------\n");
+    % for i = 1:numel(summary)
+    %     s = summary{i};
+    %     fprintf("%-10s | %-10d | %-10.4f | %-10d | %-10.4f | %-10d | %-10.4f\n", ...
+    %         s.signal, s.fft_terms, s.fft_error, s.omp_terms, s.omp_error, s.ols_terms, s.ols_error);
+    % end
 end
 
-function plot_selected_atoms(t, D, dict_info, active_idx, coeffs, method_name)
-    figure('Name', [method_name ' atoms']);
-    hold on;
-    for i = 1:numel(active_idx)
-        atom = D(:, active_idx(i));
-        contrib = real(coeffs(i) * atom);
-        plot(t, real(contrib), 'LineWidth', 1.5);
-    end
-    hold off;
-    title([method_name ' selected atoms (overlayed contributions)']);
-    legend(arrayfun(@(i) sprintf('Atom %d', i), 1:numel(active_idx), 'UniformOutput', false));
-end
+% function plot_selected_atoms(t, D, dict_info, active_idx, coeffs, method_name)
+%     figure('Name', [method_name ' atoms']);
+%     hold on;
+%     for i = 1:numel(active_idx)
+%         atom = D(:, active_idx(i));
+%         contrib = real(coeffs(i) * atom);
+%         plot(t, real(contrib), 'LineWidth', 1.5);
+%     end
+%     hold off;
+%     title([method_name ' selected atoms (overlayed contributions)']);
+%     legend(arrayfun(@(i) sprintf('Atom %d', i), 1:numel(active_idx), 'UniformOutput', false));
+% end
 

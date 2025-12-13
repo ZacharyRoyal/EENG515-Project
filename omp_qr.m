@@ -1,3 +1,7 @@
+% Instead of solving the normal equations directly by constructing the Gram
+% matrix G = \Phi^{T}*\Phi
+% Use QR factorization on \Phi, so \Phi = QR, G is never constructed
+% explicitly. This increases numerical stability
 function [active, cA] = omp_qr(D, x, percent_error_threshold, max_allowed_coeffs)
     if ~exist('max_allowed_coeffs', 'var')
         max_allowed_coeffs = size(D,2); 
@@ -19,7 +23,7 @@ function [active, cA] = omp_qr(D, x, percent_error_threshold, max_allowed_coeffs
         % Refit coefficients on active set using QR
         PhiA = D(:, active);    % Subset of dictionary atoms (Phi)
         [Q,R] = qr(PhiA, 0);    % Factor Phi = Q R
-        cA = R \ (Q' * x);      % Solve R*c = Q'*x -> c = R^{-1} Q' x
+        cA = R \ (Q' * x);      % Solve R*c=Q'*x -> c=R^{-1}*Q'*x
         r = x - PhiA * cA;      % Residual after reconstruction
     end
 end

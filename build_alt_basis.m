@@ -1,4 +1,5 @@
-function Phi = build_alt_basis(N, freqs, metric_def)
+function Phi = build_alt_basis(N, metric_def)
+    freqs = 0:N-1;
     metric_handle = make_weighted_p_metric_struct(metric_def);
     Phi = zeros(N, numel(freqs));
     for j = 1:numel(freqs)

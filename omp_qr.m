@@ -17,9 +17,9 @@ function [active, cA] = omp_qr(D, x, percent_error_threshold, max_allowed_coeffs
         end
         active = [active, idx];
         % Refit coefficients on active set using QR
-        PhiA = D(:, active);
-        [Q,R] = qr(PhiA, 0);
-        cA = R \ (Q' * x);
-        r = x - PhiA * cA;
+        PhiA = D(:, active);    % Subset of dictionary atoms (Phi)
+        [Q,R] = qr(PhiA, 0);    % Factor Phi = Q R
+        cA = R \ (Q' * x);      % Solve R*c = Q'*x -> c = R^{-1} Q' x
+        r = x - PhiA * cA;      % Residual after reconstruction
     end
 end

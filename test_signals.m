@@ -12,6 +12,7 @@ function test_signals()
     signals.sawtooth  = sawtooth(4*t);
     signals.triangle  = sawtooth(4*t, 0.5);
     signals.noise     = randn(1,N);
+    signals.smoothe   = smoothed_random_samples(N, 5);
     signals.shark     = shark_samples(t, 4); % your custom function
 
     % ----- Metrics sweep -----
@@ -28,8 +29,7 @@ function test_signals()
         x = signals.(name)(:);
 
         % Build dictionary
-        freqs = 0:(N-1);
-        [D, dict_info] = build_alt_dictionary(N, freqs, metric_def_list);
+        [D, dict_info] = build_alt_dictionary(N, metric_def_list);
         D = D ./ vecnorm(D); % normalize columns
 
         % --- Run OMP ---

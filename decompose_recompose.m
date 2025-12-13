@@ -1,10 +1,10 @@
 % define signal here
-step_size = 0.1;
+step_size = 0.05;
 time_series = 0:step_size:2*pi;
-frequency = 4;
+frequency = 2;
 
 % random sample with varying smoothness
-%random_smoothing = 2;
+%random_smoothing = 3;
 %samples = smoothed_random_samples(length(time_series), random_smoothing);
 
 % triangle wave
@@ -20,25 +20,28 @@ frequency = 4;
 %samples = block_samples(time_series, frequency);
 
 % funky shark-fin looking shapes
-%samples = shark_samples(time_series, frequency);
-
-% double the sharks
-samples = shark_samples(time_series, frequency)+1;
-samples = samples + (flip(samples));
+samples = shark_samples(time_series, frequency);
 
 % sin wave of given metric
-%samples = sin_samples(time_series, frequency, make_weighted_p_metric(1,1,0.5));
-%samples = samples + sin_samples(time_series, frequency*3, make_weighted_p_metric(100,1,3));
-%amples = samples + sin_samples(time_series, frequency*2, make_weighted_p_metric(1,1,2)) .* 0.2;
+%wave_1 = zeros(1, length(time_series));%sin_samples(time_series, frequency, make_weighted_p_metric_struct(struct('W', [1 0.5; 0 1])));
+%plot(wave_1)
+%hold on;
+%wave_2 = sin_samples(time_series, frequency*3, make_weighted_p_metric_struct(struct('W', [0.01 0; 0 1])));
+%plot(wave_2)
+%wave_3 = sin_samples(time_series, frequency*2, make_weighted_p_metric(1,1,2));
+%plot(wave_3)
+%samples = wave_1 + wave_2 + wave_3;
+%plot(samples)
+%hold off;
 
 % add some random noise if you choose
-%samples = add_random_noise(samples, 0.1, 5);
+%samples = add_random_noise(samples, 0.25, 1);
 
 percent_error_threshold = 0.1;
 
 figure;
 recomp_compare_plot = subplot(1,1,1);
-plot(recomp_compare_plot, samples, LineWidth=4, Color='g')
+plot(recomp_compare_plot, samples, LineWidth=4, Color='g', DisplayName="Original Signal")
 hold(recomp_compare_plot, 'on')
 
 figure;
@@ -76,15 +79,14 @@ end
 
 l2_terms_to_approx = length(l2_coeffs_base) - samples_to_zero
 percent_error = norm(samples - recon_samples_l2)/norm(samples)
-plot(recomp_compare_plot, recon_samples_l2, LineWidth=2, LineStyle="--")
+plot(recomp_compare_plot, recon_samples_l2, LineWidth=2, LineStyle="--", DisplayName="Standard DFT Reconstruction")
 l2_list = {};
 for i = 1:1:length(l2_coeffs_cut)
     l2_list{i} = struct('p', 2);
 end
 plot_dynamic_decomposition(l2_coeffs_cut, 1:1:length(l2_coeffs_cut), l2_list, decomp_compare_plot_1, length(samples));
 
-%w_sweep = [0.01, 1, 100]; % new champion?
-
+% current champion set
 metric_def_sweep = {struct('p', 1), struct('p', 2), struct('p', 3), struct('W', [0.01 0; 0 1]), struct('W', [100 0; 0 1]), struct('W', [1 0.5; 0 1]), struct('W', [1 -0.5; 0 1])};
 
 % then the first iteraiton of the dynamic basis decomposition
@@ -98,7 +100,7 @@ for i = 1:1:length(metrics)
     fprintf("\t%.3f + %.3fi, %d, %s \n", real(coeffs(i)), imag(coeffs(i)), freqs(i), metric_def_to_string(metrics{i}));
 end
 
-plot(recomp_compare_plot, recon_samples_dyn, LineWidth=2, LineStyle="--")
+plot(recomp_compare_plot, recon_samples_dyn, LineWidth=2, LineStyle="--", DisplayName="Subtractive Dynamic Reconstruction")
 plot_dynamic_decomposition(coeffs, freqs, metrics, decomp_compare_plot_2, length(samples));
 
 % and finally the enhanced dynamic basis decomposition
@@ -112,5 +114,5 @@ for i = 1:1:length(metrics)
     fprintf("\t%.3f + %.3fi, %d, %s \n", real(coeffs(i)), imag(coeffs(i)), freqs(i), metric_def_to_string(metrics{i}));
 end
 
-plot(recomp_compare_plot, recon_samples_enhanced_dyn, LineWidth=2, LineStyle="--")
+plot(recomp_compare_plot, recon_samples_enhanced_dyn, LineWidth=2, LineStyle="--", DisplayName="Additive Dynamic Reconstruction")
 plot_dynamic_decomposition(coeffs, freqs, metrics, decomp_compare_plot_3, length(samples));

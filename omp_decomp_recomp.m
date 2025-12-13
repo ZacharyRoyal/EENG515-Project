@@ -39,8 +39,6 @@ function omp_decomp_recomp()
     % ----- Build dictionary across metrics and frequencies -----
     N = numel(samples);
     [D, dict_info] = build_alt_dictionary(N, metric_def_list); % N x K
-    % Column-normalize for fair correlation
-    D = D ./ vecnorm(D);
 
     % ----- Run OMP with QR refit -----
     max_allowed_coeffs = N; % or smaller cap

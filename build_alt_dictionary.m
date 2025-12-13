@@ -11,5 +11,6 @@ function [D, dict_info] = build_alt_dictionary(N, metric_def_list)
         end
     end
     D = cell2mat(cols); % N x K
+    D = D ./ vecnorm(D);
     fprintf("Size of Dictionary, K: %d\n", size(D, 2));
 end

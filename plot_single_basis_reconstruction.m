@@ -6,7 +6,7 @@ function plot_single_basis_reconstruction(samples, metric_def)
     freqs = 0:(N-1);
 
     % Build basis matrix for this metric
-    Phi = build_alt_basis(N, freqs, metric_def);
+    Phi = build_alt_basis(N, metric_def);
 
     % Solve least squares for coefficients
     [Q,R] = qr(Phi,0);

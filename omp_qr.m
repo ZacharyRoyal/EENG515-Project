@@ -25,5 +25,13 @@ function [active, cA] = omp_qr(D, x, percent_error_threshold, max_allowed_coeffs
         [Q,R] = qr(PhiA, 0);    % Factor Phi = Q R
         cA = R \ (Q' * x);      % Solve R*c=Q'*x -> c=R^{-1}*Q'*x
         r = x - PhiA * cA;      % Residual after reconstruction
+
+        % If you instead want to solve normal equations directly
+        % PhiA = D(:, active);        % Subset of dictionary atoms, active (Phi)
+        % G = PhiA' * PhiA;           % Gram matrix
+        % b = PhiA' * x;              % right-hand side
+        % cA = b / G;                 % solve b = G^(-1)*c
+        % r = x - PhiA * cA;          % residual
+
     end
 end

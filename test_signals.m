@@ -1,23 +1,30 @@
 function test_signals()
 
     % ----- Parameters -----
-    N = 100;                 % number of samples
-    t = linspace(0, 2*pi, N);
+    t = 0:0.1:2*pi;
+    N = length(t);                 % number of samples
     percent_error_threshold = 0.1;
 
     % ----- Define signals -----
     signals = struct();
     signals.sine      = sin(4*t);
-    signals.square    = square(4*t);
+    signals.square    = block_samples(t, 2);
     signals.sawtooth  = sawtooth(4*t);
-    signals.triangle  = sawtooth(4*t, 0.5);
+    % signals.triangle  = sawtooth(2*t, 0.5);
+    signals.triangle  = tri_samples(t ,2);
     signals.noise     = randn(1,N);
     signals.smoothe   = smoothed_random_samples(N, 5);
-    signals.shark     = shark_samples(t, 4); % your custom function
+    signals.shark     = shark_samples(t, 2); % your custom function
 
     % ----- Metrics sweep -----
     metric_def_list = {
-        struct('p', 1), struct('p', 2), struct('p', 3), struct('W', [0.01 0; 0 1]), struct('W', [100 0; 0 1]), struct('W', [1 0.5; 0 1]), struct('W', [1 -0.5; 0 1])
+        struct('p', 1), ...
+        struct('p', 2), ...
+        struct('p', 3), ...
+        struct('W', [0.01 0; 0 1]), ...
+        struct('W', [100 0; 0 1]), ...
+        struct('W', [1 0.5; 0 1]), ...
+        struct('W', [1 -0.5; 0 1])
     };
 
     % ----- Loop over signals -----
@@ -30,7 +37,6 @@ function test_signals()
 
         % Build dictionary
         [D, dict_info] = build_alt_dictionary(N, metric_def_list);
-        D = D ./ vecnorm(D); % normalize columns
 
         % --- Run OMP ---
         [active_idx_omp, coeffs_omp] = omp_qr(D, x, percent_error_threshold, N);
@@ -78,6 +84,23 @@ function test_signals()
      'DisplayName', sprintf('OLS (%d terms, err=%.3f)', ols_terms, ols_error));
         legend;
         title(['OMP vs OLS vs FFT reconstruction for ', name]);
+        % 
+        % % --- Plot selected atoms for OMP ---
+        % plot_selected_atoms(t, D, dict_info, active_idx_omp, coeffs_omp, 'OMP');
+        % 
+        % % --- Plot selected atoms for OLS ---
+        % plot_selected_atoms(t, D, dict_info, active_idx_ols, coeffs_ols, 'OLS');
+        % 
+        % % --- Plot selected atoms for FFT ---
+        % % For FFT, the "atoms" are just complex exponentials at selected frequencies.
+        % % We can reconstruct them similarly:
+        % fft_active = find(fft_cut ~= 0);
+        % fft_coeffs_used = fft_cut(fft_active);
+        % 
+        % % Build a dummy dict_info with frequency labels
+        % fft_info = arrayfun(@(f) struct('freq', f, 'metric', struct('p',2)), fft_active, 'UniformOutput', false);
+        % 
+        % plot_selected_atoms(t, dftmtx(N), fft_info, fft_active, fft_coeffs_used, 'FFT');
 
         % --- Save summary ---
         summary{end+1} = struct('signal', name, ...
@@ -96,5 +119,18 @@ function test_signals()
         fprintf("%-10s | %-10d | %-10.4f | %-10d | %-10.4f | %-10d | %-10.4f\n", ...
             s.signal, s.fft_terms, s.fft_error, s.omp_terms, s.omp_error, s.ols_terms, s.ols_error);
     end
+end
+
+function plot_selected_atoms(t, D, dict_info, active_idx, coeffs, method_name)
+    figure('Name', [method_name ' atoms']);
+    hold on;
+    for i = 1:numel(active_idx)
+        atom = D(:, active_idx(i));
+        contrib = real(coeffs(i) * atom);
+        plot(t, real(contrib), 'LineWidth', 1.5);
+    end
+    hold off;
+    title([method_name ' selected atoms (overlayed contributions)']);
+    legend(arrayfun(@(i) sprintf('Atom %d', i), 1:numel(active_idx), 'UniformOutput', false));
 end
 

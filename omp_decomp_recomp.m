@@ -1,7 +1,7 @@
 function omp_decomp_recomp()
 
     % ----- Signal -----
-    step_size = 0.1;
+    step_size = 0.01;
     t = 0:step_size:2*pi;
     frequency = 4;
 

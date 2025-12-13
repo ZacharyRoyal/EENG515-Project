@@ -1,5 +1,5 @@
 % define signal here
-step_size = 0.1;
+step_size = 0.5;
 time_series = 0:step_size:2*pi;
 frequency = 4;
 
@@ -102,7 +102,7 @@ plot(recomp_compare_plot, recon_samples_dyn, LineWidth=2, LineStyle="--")
 plot_dynamic_decomposition(coeffs, freqs, metrics, decomp_compare_plot_2, length(samples));
 
 % and finally the enhanced dynamic basis decomposition
-[coeffs, freqs, metrics] = enhanced_dynamic_basis_decomposition(samples, metric_def_sweep, percent_error_threshold);
+[coeffs, freqs, metrics] = fixed_coeff_dynamic_basis_decomp(samples, metric_def_sweep, percent_error_threshold);
 enhanced_dyn_terms_to_approx = length(coeffs)
 recon_samples_enhanced_dyn = dynamic_basis_recomposition(coeffs, freqs, metrics, length(samples));
 percent_error = norm(samples - recon_samples_enhanced_dyn)/norm(samples)

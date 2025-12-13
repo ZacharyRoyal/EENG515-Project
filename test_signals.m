@@ -1,18 +1,18 @@
 function test_signals()
 
     % ----- Parameters -----
-    t = 0:0.1:2*pi;
+    t = 0:0.15:2*pi;
     N = length(t);                 % number of samples
     percent_error_threshold = 0.1;
 
     % ----- Define signals -----
     signals = struct();
-    signals.sine      = sin(4*t);
+    % signals.sine      = sin(4*t);
     signals.square    = block_samples(t, 2);
     signals.sawtooth  = sawtooth(4*t);
     % signals.triangle  = sawtooth(2*t, 0.5);
     signals.triangle  = tri_samples(t ,2);
-    signals.noise     = randn(1,N);
+    % signals.noise     = randn(1,N);
     signals.smoothe   = smoothed_random_samples(N, 5);
     signals.shark     = shark_samples(t, 2); % your custom function
 
@@ -55,6 +55,16 @@ function test_signals()
         ols_error = norm(x - recon_ols) / norm(x);
         recon_ols = recon_ols(:);
 
+        % --- Run Additive --- 
+        [fixed_coeffs, fixed_freqs, fixed_metrics] = fixed_coeff_dynamic_basis_decomp(x', metric_def_list, percent_error_threshold);
+        recon_fixed = dynamic_basis_recomposition(fixed_coeffs, fixed_freqs, fixed_metrics, length(x'));
+        fixed_error = norm(x' - recon_fixed) / norm(x');
+
+        % --- Run Subtractive --- 
+        [sub_coeffs, sub_freqs, sub_metrics] = dynamic_basis_decomposition(x', metric_def_list, percent_error_threshold);
+        recon_sub = dynamic_basis_recomposition(sub_coeffs, sub_freqs, sub_metrics, length(x'));
+        sub_error = norm(x' - recon_sub) / norm(x');
+
         % --- FFT baseline ---
         fft_coeffs = fft(x);
         percent_error = inf;
@@ -74,16 +84,20 @@ function test_signals()
 
         % --- Plot ---
         figure('Name', ['Signal: ', name]);
-        plot(t, x, 'LineWidth', 3, 'Color', 'g', 'DisplayName', 'Original');
+        plot(x, 'LineWidth', 3, 'Color', 'g', 'DisplayName', 'Original');
         hold on;
-        plot(t, recon_fft, 'LineWidth', 2, 'LineStyle', '--', ...
+        plot(recon_fft, 'LineWidth', 2, 'LineStyle', '--', ...
             'DisplayName', sprintf('FFT (%d terms, err=%.3f)', l2_terms, l2_error));
-        plot(t, recon_omp, 'LineWidth', 2, 'LineStyle', '--', ...
+        plot(recon_omp, 'LineWidth', 2, 'LineStyle', '--', ...
             'DisplayName', sprintf('OMP (%d terms, err=%.3f)', omp_terms, omp_error));
-        plot(t, recon_ols, 'LineWidth', 2, 'LineStyle', '--', ...
+        plot(recon_ols, 'LineWidth', 2, 'LineStyle', '--', ...
      'DisplayName', sprintf('OLS (%d terms, err=%.3f)', ols_terms, ols_error));
+        plot(recon_fixed, 'LineWidth', 2, 'LineStyle', '--', ...
+            'DisplayName', sprintf('Fixed (%d terms, err=%.3f)', numel(fixed_coeffs), fixed_error));
+        plot(recon_sub, 'LineWidth', 2, 'LineStyle', '--', ...
+            'DisplayName', sprintf('Subtractive (%d terms, err=%.3f)', numel(sub_coeffs), sub_error));
         legend;
-        title(['OMP vs OLS vs FFT reconstruction for ', name]);
+        title(['OMP vs OLS vs FFT vs Fixed vs Sub reconstruction for ', name]);
         % 
         % % --- Plot selected atoms for OMP ---
         % plot_selected_atoms(t, D, dict_info, active_idx_omp, coeffs_omp, 'OMP');
